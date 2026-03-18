@@ -110,6 +110,8 @@ public class RegistrationServiceGrpcEndpoint extends ReactorRegistrationServiceG
           final ClientType clientType = tuple.getT4();
           @Nullable final String senderName = StringUtils.stripToNull(request.getSenderName());
 
+logger.info("sendVerificationCode - messageTransport: {}, sessionId: {}, senderName: {}, languageRanges: {}, clientType: {}", messageTransport, sessionId, senderName, languageRanges, clientType);
+
           return Mono.fromFuture(
               registrationService.sendVerificationCode(messageTransport, sessionId, senderName, languageRanges, clientType));
         })

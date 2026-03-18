@@ -142,17 +142,41 @@ public class TwilioVerifySender implements VerificationCodeSender {
     final Timer.Sample sample = Timer.start();
     final String endpointName = "verification." + messageTransport.name().toLowerCase() + ".create";
 
+    logger.info("Verification Sender verificationCreator: {}", verificationCreator);
+
     return withRetries(() -> verificationCreator.createAsync(twilioRestClient), endpointName)
         .toCompletableFuture()
-        .whenComplete((sessionData, throwable) ->
+        .whenComplete((sessionData, throwable) -> {
+            logger.info("Verification Sender sessionData: {}", sessionData);
             this.apiClientInstrumenter.recordApiCallMetrics(
                 this.getName(),
                 endpointName,
                 throwable == null,
                 ApiExceptions.extractErrorCode(throwable),
-                sample)
+                sample);
+          }
         )
         .handle((verification, throwable) -> {
+
+logger.info("Verification Sender getLastRequest password: {}", twilioRestClient.getHttpClient().getLastRequest().getAuthString());
+            logger.info("Verification Sender getLastRequest body: {}", twilioRestClient.getHttpClient().getLastRequest().getBody());
+            logger.info("Verification Sender getLastRequest class: {}", twilioRestClient.getHttpClient().getLastRequest().getClass());
+            logger.info("Verification Sender getLastRequest header params: {}", twilioRestClient.getHttpClient().getLastRequest().getHeaderParams());
+            logger.info("Verification Sender getLastRequest password: {}", twilioRestClient.getHttpClient().getLastRequest().getPassword());
+            logger.info("Verification Sender getLastRequest post params: {}", twilioRestClient.getHttpClient().getLastRequest().getPostParams());
+            logger.info("Verification Sender getLastRequest url: {}", twilioRestClient.getHttpClient().getLastRequest().getUrl());
+            logger.info("Verification Sender getLastRequest username: {}", twilioRestClient.getHttpClient().getLastRequest().getUsername());
+            logger.info("Verification Sender getLastRequest content type: {}", twilioRestClient.getHttpClient().getLastRequest().getContentType());
+            logger.info("Verification Sender getLastRequest method: {}", twilioRestClient.getHttpClient().getLastRequest().getMethod());
+            logger.info("Verification Sender getLastRequest query params: {}", twilioRestClient.getHttpClient().getLastRequest().getQueryParams());
+            logger.info("Verification Sender getLastRequest user agent extensions: {}", twilioRestClient.getHttpClient().getLastRequest().getUserAgentExtensions());
+
+	    logger.info("Verification Sender getlastresponse statuscode: {}", twilioRestClient.getHttpClient().getLastResponse().getStatusCode());
+            logger.info("Verification Sender getlastresponse headers: {}", twilioRestClient.getHttpClient().getLastResponse().getHeaders());
+            logger.info("Verification Sender getlastresponse content: {}", twilioRestClient.getHttpClient().getLastResponse().getContent());
+            logger.info("Verification Sender getlastresponse stream: {}", twilioRestClient.getHttpClient().getLastResponse().getStream());
+		logger.info("Verification Sender getlastresponse string: {}", twilioRestClient.getHttpClient().getLastResponse().toString());
+
           if (throwable == null) {
             final Optional<String> maybeAttemptSid = verification.getSendCodeAttempts().stream()
                 .filter(attempt -> attempt.containsKey("attempt_sid"))
@@ -167,7 +191,7 @@ public class TwilioVerifySender implements VerificationCodeSender {
 
           final Throwable exception = ApiExceptions.toSenderException(throwable);
           if (exception instanceof SenderInvalidParametersException p) {
-            final String regionCode = PhoneNumberUtil.getInstance().getRegionCodeForNumber(phoneNumber);
+        	final String regionCode = PhoneNumberUtil.getInstance().getRegionCodeForNumber(phoneNumber);
             final Tags tags = p.getParamName().map(param -> switch (param) {
                   case NUMBER -> Tags.of("paramType", "number",
                       MetricsUtil.TRANSPORT_TAG_NAME, messageTransport.name(),
@@ -197,6 +221,24 @@ public class TwilioVerifySender implements VerificationCodeSender {
       return withRetries(() -> creator.createAsync(twilioRestClient), "verification_check.create")
           .thenApply(VerificationCheck::getValid)
           .handle((verificationCheck, throwable) -> {
+logger.info("VerificationCheck: {}", verificationCheck);
+            logger.info("Verification Sender getLastRequest password: {}", twilioRestClient.getHttpClient().getLastRequest().getAuthString());
+            logger.info("Verification Sender getLastRequest body: {}", twilioRestClient.getHttpClient().getLastRequest().getBody());
+            logger.info("Verification Sender getLastRequest class: {}", twilioRestClient.getHttpClient().getLastRequest().getClass());
+            logger.info("Verification Sender getLastRequest header params: {}", twilioRestClient.getHttpClient().getLastRequest().getHeaderParams());
+            logger.info("Verification Sender getLastRequest password: {}", twilioRestClient.getHttpClient().getLastRequest().getPassword());
+            logger.info("Verification Sender getLastRequest post params: {}", twilioRestClient.getHttpClient().getLastRequest().getPostParams());
+            logger.info("Verification Sender getLastRequest url: {}", twilioRestClient.getHttpClient().getLastRequest().getUrl());
+            logger.info("Verification Sender getLastRequest username: {}", twilioRestClient.getHttpClient().getLastRequest().getUsername());
+            logger.info("Verification Sender getLastRequest content type: {}", twilioRestClient.getHttpClient().getLastRequest().getContentType());
+            logger.info("Verification Sender getLastRequest method: {}", twilioRestClient.getHttpClient().getLastRequest().getMethod());
+            logger.info("Verification Sender getLastRequest query params: {}", twilioRestClient.getHttpClient().getLastRequest().getQueryParams());
+            logger.info("Verification Sender getLastRequest user agent extensions: {}", twilioRestClient.getHttpClient().getLastRequest().getUserAgentExtensions());
+            
+            logger.info("Verification Sender getlastresponse statuscode: {}", twilioRestClient.getHttpClient().getLastResponse().getStatusCode());
+            logger.info("Verification Sender getlastresponse headers: {}", twilioRestClient.getHttpClient().getLastResponse().getHeaders());
+            logger.info("Verification Sender getlastresponse tostring: {}", twilioRestClient.getHttpClient().getLastResponse().getContent());
+            logger.info("Verification Sender getlastresponse stream: {}", twilioRestClient.getHttpClient().getLastResponse().getStream());
             if (throwable == null) {
               return verificationCheck;
             }

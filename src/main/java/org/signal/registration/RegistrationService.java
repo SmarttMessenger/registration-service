@@ -41,7 +41,9 @@ import org.signal.registration.sender.SenderFraudBlockException;
 import org.signal.registration.sender.SenderRejectedRequestException;
 import org.signal.registration.sender.SenderRejectedTransportException;
 import org.signal.registration.sender.SenderSelectionStrategy;
+import org.signal.registration.sender.SenderSelectionStrategy.SenderSelection;
 import org.signal.registration.sender.VerificationCodeSender;
+import org.signal.registration.sender.twilio.verify.TwilioVerifySender;
 import org.signal.registration.session.FailedSendAttempt;
 import org.signal.registration.session.FailedSendReason;
 import org.signal.registration.session.RegistrationAttempt;
@@ -52,6 +54,8 @@ import org.signal.registration.util.ClientTypes;
 import org.signal.registration.util.CompletionExceptions;
 import org.signal.registration.util.MessageTransports;
 import org.signal.registration.util.UUIDUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The registration service is the core orchestrator of registration business logic and manages registration sessions
@@ -69,6 +73,8 @@ public class RegistrationService {
   private final Clock clock;
 
   private final Map<String, VerificationCodeSender> sendersByName;
+
+  private static final Logger logger = LoggerFactory.getLogger(RegistrationService.class);
 
   @VisibleForTesting
   static final Duration SESSION_TTL_AFTER_LAST_ACTION = Duration.ofMinutes(10);
@@ -197,9 +203,14 @@ public class RegistrationService {
               .map(FailedSendAttempt::getSenderName)
               .forEach(previouslyFailedSenders::add);
 
+          logger.info("previouslyFailedSender: {}", previouslyFailedSenders);
+
           final SenderSelection selection = senderSelectionStrategy.chooseVerificationCodeSender(
               messageTransport, phoneNumberFromSession, languageRanges, clientType, senderName,
               previouslyFailedSenders);
+
+          logger.info("selection: {}", selection);
+          logger.info("messageTransport: {}, phoneNumberFromSession: {}, languageRanges: {}, clientType: {}", messageTransport, phoneNumberFromSession, languageRanges, clientType);
 
           return selection.sender()
               .sendVerificationCode(messageTransport, phoneNumberFromSession, languageRanges, clientType)
@@ -212,6 +223,8 @@ public class RegistrationService {
                         clientType,
                         attemptData,
                         selection.sender().getAttemptTtl()));
+
+                logger.info("attemptData: {}", attemptData);
 
                 builder.setExpirationEpochMillis(getSessionExpiration(builder.build()).toEpochMilli());
                 return builder.build();
